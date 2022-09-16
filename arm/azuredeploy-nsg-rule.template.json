@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+      "networkSecurityGroupsSettings": {"type":"object"},
+      "location": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]",
+        "metadata": {
+          "description": "Location for all resources."
+        }
+      },
+      "nsgName": {
+        "type": "string",
+        "defaultValue": ""
+      }
+  },
+  "resources": [
+    {
+        "apiVersion": "2015-01-01",
+        "type": "Microsoft.Resources/deployments",
+        "name": "[concat(parameters('nsgName'), copyIndex(1))]",
+        "copy": {
+          "name": "iterator",
+          "count": "[length(parameters('networkSecurityGroupsSettings').securityRules)]"
+        },
+        "properties": {
+          "mode": "Incremental",
+          "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+           "parameters": {},
+            "variables": {},
+            "resources": [
+                {
+                    "name": "[concat(parameters('nsgName'), '/' , parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].name)]",
+                    "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                    "apiVersion": "2016-09-01",
+                    "location":"[resourceGroup().location]",
+                    "properties":{
+                        "description": "[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].description]",
+                        "priority":"[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].priority]",
+                        "protocol":"[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].protocol]",
+                        "sourcePortRange": "[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].sourcePortRange]",
+                        "destinationPortRange": "[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].destinationPortRange]",
+                        "sourceAddressPrefix": "[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].sourceAddressPrefix]",
+                        "destinationAddressPrefix": "[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].destinationAddressPrefix]",
+                        "access":"[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].access]",
+                        "direction":"[parameters('networkSecurityGroupsSettings').securityRules[copyIndex()].direction]"
+                        }
+                  }
+            ],
+            "outputs": {}
+          }
+        }
+    }
+  ],
+  "outputs": {}
+}

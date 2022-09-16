@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sqlServerFirewallName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the SQL Server Firewall Rule"
+      }
+    },
+    "startIpAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Start IP Address Range"
+      }
+    },
+    "endIpAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "End IP Address Range"
+      }
+    },
+    "sqlServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the SQL Server"
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "[concat(parameters('sqlServerName'),'/',parameters('sqlServerFirewallName'))]",
+      "type": "Microsoft.Sql/servers/firewallRules",
+      "apiVersion": "2020-11-01-preview",
+      "properties": {
+        "startIpAddress": "[parameters('startIpAddress')]",
+        "endIpAddress": "[parameters('endIpAddress')]"
+      }
+    }
+  ]
+}

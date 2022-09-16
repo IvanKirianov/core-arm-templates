@@ -1,0 +1,581 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "0.0.0.3",
+    "parameters": {
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Vnet Name"
+            }
+        },
+        "k8sRbacAadProfileAdminGroupObjectID": {
+            "type": "string",
+            "metadata": {
+                "description": "Group that has admin access to this cluster"
+            }
+        },
+        "k8sRbacAadProfileTenantId": {
+            "type": "string",
+            "metadata": {
+                "description": "This is tennant where the ServerAppId, ServerAppSecret, ClientAppId all reside"
+            }
+        },
+        "clusterAuthorizedIPRanges": {
+            "type": "array",
+            "defaultValue": [],
+            "metadata": {
+                "description": "IP ranges authorized to contact the Kubernetes API server. Passing an empty array will result in no IP restrictions. If any are provided, remember to also provide the public IP of the egress Azure Firewall otherwise your nodes will not be able to talk to the API server (e.g. Flux)."
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location of AKS resources"
+            }
+        },
+        "nodeResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Fill there"
+            }
+        },
+        "clusterName": {
+            "type": "string",
+            "metadata": {
+                "description": "Fill there"
+            }
+        },
+        "kubernetesVersion": {
+            "type": "string",
+            "metadata": {
+                "description": "Kubernetes Orchestrator Engine Version"
+            }
+        },
+        "systemVMCount": {
+            "type": "int",
+            "metadata": {
+                "description": "Kubernetes System Node Pool"
+            }
+        },
+        "systemVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Kubernetes System Node Pool VM Size"
+            }
+        },
+        "systemOsDiskSizeGB": {
+            "type": "int",
+            "metadata": {
+                "description": "Kubernetes System OS Disk Size"
+            }
+        },
+        "systemOsDiskType": {
+            "type": "string",
+            "metadata": {
+                "description": "Kubernetes System OS Disk Type"
+            }
+        },
+        "systemOsType": {
+            "type": "string",
+            "metadata": {
+                "description": "OS Node Type"
+            }
+        },
+        "systemMaxPods": {
+            "type": "int",
+            "metadata": {
+                "description": "System POD Max Count"
+            }
+        },
+        "systemAgentPoolProfilesType": {
+            "type": "string",
+            "defaultValue": "VirtualMachineScaleSets",
+            "allowedValues": [
+                "VirtualMachineScaleSets",
+                "AvailabilitySet"
+            ],
+            "metadata": {
+                "description": "AgentPoolType represents types of an agent pool"
+            }
+        },
+        "systemAgentPoolProfilesMode": {
+            "type": "string",
+            "defaultValue": "System",
+            "metadata": {
+                "description": "AgentPoolMode represents mode of an agent pool"
+            }
+        }, 
+        "systemAgentPoolProfilesScaleSetPriority": {
+            "type": "string",
+            "defaultValue": "Regular",
+            "allowedValues": [
+                "Regular",
+                "Spot"
+            ],            
+            "metadata": {
+                "description": "ScaleSetPriority to be used to specify virtual machine scale set priority"
+            }
+        },  
+        "systemAgentPoolProfilesAvailabilityZones": {
+            "type": "array",
+            "defaultValue": [
+                "1",
+                "2",
+                "3"
+            ],
+            "metadata": {
+                "description": "Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType."
+            }
+        },
+        "systemAgentPoolProfilesEnableAutoScaling": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable Cluster Node Pool auto-scaler"
+            }
+        }, 
+        "systemAgentPoolProfilesEnableNodePublicIP": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable public IP for nodes"
+            }
+        }, 
+         "systemAgentPoolProfilesScaleSetEvictionPolicy": {
+            "type": "string",
+            "defaultValue": "Delete",
+            "metadata": {
+                "description": "ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set"
+            }
+        }, 
+         "systemAgentPoolProfilesMinCount": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "Minimum number of nodes for auto-scaling"
+            }
+        },
+         "systemAgentPoolProfilesMaxCount": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "Maximum number of nodes for auto-scaling"
+            }
+        },
+        "userVMCount": {
+            "type": "int",
+            "metadata": {
+                "description": "Kubernetes User Node Pool"
+            }
+        },
+        "userVmSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Kubernetes User Node Pool VM Size"
+            }
+        },
+        "userOsDiskSizeGB": {
+            "type": "int",
+            "metadata": {
+                "description": "Kubernetes User OS Disk Size"
+            }
+        },
+        "userOsDiskType": {
+            "type": "string",
+            "metadata": {
+                "description": "Kubernetes User OS Disk Type"
+            }
+        },
+        "userOsType": {
+            "type": "string",
+            "metadata": {
+                "description": "User OS Node Type"
+            }
+        },
+        "userMaxPods": {
+            "type": "int",
+            "metadata": {
+                "description": "User POD Max Count"
+            }
+        },
+        "userAgentPoolProfilesType": {
+            "type": "string",
+            "defaultValue": "VirtualMachineScaleSets",
+            "allowedValues": [
+                "VirtualMachineScaleSets",
+                "AvailabilitySet"
+            ],
+            "metadata": {
+                "description": "User AgentPoolType represents types of an agent pool"
+            }
+        },
+        "userAgentPoolProfilesMode": {
+            "type": "string",
+            "defaultValue": "User",
+            "metadata": {
+                "description": "User AgentPoolMode represents mode of an agent pool"
+            }
+        }, 
+        "userAgentPoolProfilesScaleSetPriority": {
+            "type": "string",
+            "defaultValue": "Regular",
+            "allowedValues": [
+                "Regular",
+                "Spot"
+            ],            
+            "metadata": {
+                "description": "User ScaleSetPriority to be used to specify virtual machine scale set priority"
+            }
+        },  
+        "userAgentPoolProfilesAvailabilityZones": {
+            "type": "array",
+            "defaultValue": [
+                "1",
+                "2",
+                "3"
+            ],
+            "metadata": {
+                "description": "User Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType."
+            }
+        },
+        "userAgentPoolProfilesEnableAutoScaling": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "User Enable Cluster Node Pool auto-scaler"
+            }
+        }, 
+        "userAgentPoolProfilesEnableNodePublicIP": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "User Enable public IP for nodes"
+            }
+        }, 
+         "userAgentPoolProfilesScaleSetEvictionPolicy": {
+            "type": "string",
+            "defaultValue": "Delete",
+            "metadata": {
+                "description": "User ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set"
+            }
+        }, 
+         "userAgentPoolProfilesMinCount": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "User Minimum number of nodes for auto-scaling"
+            }
+        },
+         "userAgentPoolProfilesMaxCount": {
+            "type": "int",
+            "defaultValue": 5,
+            "metadata": {
+                "description": "User Maximum number of nodes for auto-scaling"
+            }
+        },
+        "enableRBAC": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable RBAC on cluster"
+            }
+        },
+        "enablePodSecurityPolicy": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable Pod security on cluster. Feature should be enabled"
+            }
+        },
+        "EnvironmentTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Cluster Env Tag"
+            }
+        },
+        "maxAgentPools": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "The max number of agent pools for the managed cluster"
+            }
+        },
+        "networkPlugin": {
+            "type": "string",
+            "defaultValue": "azure",
+            "metadata": {
+                "description": "Network plugin used for building Kubernetes network"
+            }
+        },
+        "networkPolicy": {
+            "type": "string",
+            "defaultValue": "azure",
+            "metadata": {
+                "description": "Network policy used for building Kubernetes network"
+            }
+        },
+        "outboundType": {
+            "type": "string",
+            "defaultValue": "loadBalancer",
+            "metadata": {
+                "description": "Cluster Outbound Traffic Type"
+            }
+        },
+        "loadBalancerSku": {
+            "type": "string",
+            "defaultValue": "standard",
+            "metadata": {
+                "description": "The load balancer sku for the managed cluster"
+            }
+        },
+        "serviceCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "A CIDR notation IP range from which to assign service cluster IPs. It must not overlap with any Subnet IP ranges"
+            }
+        },
+        "dnsServiceIP": {
+            "type": "string",
+            "metadata": {
+                "description": "An IP address assigned to the Kubernetes DNS service. It must be within the Kubernetes service address range specified in serviceCidr"
+            }
+        },
+        "dockerBridgeCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "A CIDR notation IP range assigned to the Docker bridge network. It must not overlap with any Subnet IP ranges or the Kubernetes service address range"
+            }
+        },
+        "httpApplicationRouting": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Use the HTTP application routing add-on to access applications deployed on AKS."
+            }
+        },
+        "aciConnectorLinux": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Virtual node addon"
+            }
+        },
+        "azurepolicy": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Azure Policy addon"
+            }
+        },
+        "logWorkspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Log Analytics Workspace Name"
+            }
+        },   
+        "logWorkspaceRG": {
+            "type": "string",
+            "metadata": {
+                "description": "Log Analytics Workspace Resource Group"
+            }
+        }                 
+    },
+    "variables": {
+        "networkContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+        "virtualMachineContributorRole": "[concat(subscription().Id, '/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
+        "nodeResourceGroupName": "[parameters('nodeResourceGroupName')]",
+        "clusterName": "[parameters('clusterName')]",
+        "targetVnetResourceId": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vnetName'))]",
+        "vNetResourceGroup": "[split(variables('targetVnetResourceId'),'/')[4]]",
+        "vnetNodePoolSubnetResourceId": "[concat(variables('targetVnetResourceId'), '/subnets/snet-clusternodes')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2020-11-01",
+            "name": "[variables('clusterName')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "environment": "[parameters('EnvironmentTag')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "kubernetesVersion": "[parameters('kubernetesVersion')]",            
+                "dnsPrefix": "[uniqueString(subscription().subscriptionId, resourceGroup().id, variables('clusterName'))]",
+                "agentPoolProfiles": [
+                    {
+                        "name": "npsystem",
+                        "count": "[parameters('systemVmCount')]",
+                        "vmSize": "[parameters('systemVmSize')]",
+                        "osDiskSizeGB": "[parameters('systemOsDiskSizeGB')]",
+                        "osDiskType": "[parameters('systemOsDiskType')]",
+                        "osType": "[parameters('systemOsType')]",
+                        "minCount": "[parameters('systemAgentPoolProfilesMinCount')]",
+                        "maxCount": "[parameters('systemAgentPoolProfilesMaxCount')]",
+                        "vnetSubnetID": "[variables('vnetNodePoolSubnetResourceId')]",
+                        "enableAutoScaling": "[parameters('systemAgentPoolProfilesEnableAutoScaling')]", 
+                        "type": "[parameters('systemAgentPoolProfilesType')]",
+                        "mode": "[parameters('systemAgentPoolProfilesMode')]",
+                        "scaleSetPriority": "[parameters('systemAgentPoolProfilesScaleSetPriority')]",
+                        "scaleSetEvictionPolicy": "[parameters('systemAgentPoolProfilesScaleSetEvictionPolicy')]",
+                        "orchestratorVersion": "[parameters('kubernetesVersion')]",
+                        "enableNodePublicIP": "[parameters('systemAgentPoolProfilesEnableNodePublicIP')]", 
+                        "maxPods": "[parameters('systemMaxPods')]",
+                        "availabilityZones": "[parameters('systemAgentPoolProfilesAvailabilityZones')]",
+                        "upgradeSettings": {
+                            "maxSurge": "33%"
+                        }
+                    },
+                    {
+                        "name": "npuser01",
+                        "count": "[parameters('userVmCount')]",
+                        "vmSize": "[parameters('userVmSize')]",
+                        "osDiskSizeGB": "[parameters('userOsDiskSizeGB')]",
+                        "osDiskType": "[parameters('userOsDiskType')]",
+                        "osType": "[parameters('userOsType')]",
+                        "minCount": "[parameters('userAgentPoolProfilesMinCount')]",
+                        "maxCount": "[parameters('userAgentPoolProfilesMaxCount')]",
+                        "vnetSubnetID": "[variables('vnetNodePoolSubnetResourceId')]",
+                        "enableAutoScaling": "[parameters('userAgentPoolProfilesEnableAutoScaling')]",
+                        "type": "[parameters('userAgentPoolProfilesType')]",
+                        "mode": "[parameters('userAgentPoolProfilesMode')]",
+                        "scaleSetPriority": "[parameters('userAgentPoolProfilesScaleSetPriority')]",
+                        "scaleSetEvictionPolicy": "[parameters('userAgentPoolProfilesScaleSetEvictionPolicy')]",
+                        "orchestratorVersion": "[parameters('kubernetesVersion')]",
+                        "enableNodePublicIP": "[parameters('userAgentPoolProfilesEnableNodePublicIP')]", 
+                        "maxPods": "[parameters('userMaxPods')]",
+                        "availabilityZones": "[parameters('userAgentPoolProfilesAvailabilityZones')]",
+                        "upgradeSettings": {
+                            "maxSurge": "33%"
+                        }
+                    }
+                ],
+                "servicePrincipalProfile": {
+                    "clientId": "msi"
+                },
+                "addonProfiles": {
+                    "httpApplicationRouting": {
+                        "enabled": "[parameters('httpApplicationRouting')]"
+                    },
+                    "aciConnectorLinux": {
+                        "enabled": "[parameters('aciConnectorLinux')]"
+                    },
+                    "azurepolicy": {
+                        "enabled": "[parameters('azurepolicy')]",
+                        "config": {
+                            "version": "v2"
+                        }
+                    },
+                    "omsagent": {
+                        "enabled": true,
+                        "config": {
+                        "logAnalyticsWorkspaceResourceID": "[resourceId(parameters('logWorkspaceRG'),'Microsoft.OperationalInsights/workspaces', parameters('logWorkspaceName'))]"
+                        }
+                    }                    
+                },
+                "nodeResourceGroup": "[variables('nodeResourceGroupName')]",
+                "enableRBAC": "[parameters('enableRBAC')]",
+                "enablePodSecurityPolicy": "[parameters('enablePodSecurityPolicy')]",
+                "maxAgentPools": "[parameters('maxAgentPools')]",
+                "networkProfile": {
+                    "networkPlugin": "[parameters('networkPlugin')]",
+                    "networkPolicy": "[parameters('networkPolicy')]",
+                    "outboundType": "[parameters('outboundType')]",
+                    "loadBalancerSku": "[parameters('loadBalancerSku')]",
+                    "loadBalancerProfile": "[json('null')]",
+                    "serviceCidr": "[parameters('serviceCidr')]",
+                    "dnsServiceIP": "[parameters('dnsServiceIP')]",
+                    "dockerBridgeCidr": "[parameters('dockerBridgeCidr')]"
+                },
+                "aadProfile": {
+                    "managed": true,
+                    "adminGroupObjectIDs": [
+                        "[parameters('k8sRbacAadProfileAdminGroupObjectID')]"
+                    ],
+                    "tenantID": "[parameters('k8sRbacAadProfileTenantId')]"
+                },
+                "autoScalerProfile": {
+                    "scan-interval": "10s",
+                    "scale-down-delay-after-add": "10m",
+                    "scale-down-delay-after-delete": "20s",
+                    "scale-down-delay-after-failure": "3m",
+                    "scale-down-unneeded-time": "10m",
+                    "scale-down-unready-time": "20m",
+                    "scale-down-utilization-threshold": "0.5",
+                    "max-graceful-termination-sec": "600",
+                    "balance-similar-node-groups": "false",
+                    "expander": "random",
+                    "skip-nodes-with-local-storage": "true",
+                    "skip-nodes-with-system-pods": "true",
+                    "max-empty-bulk-delete": "10",
+                    "max-total-unready-percentage": "45",
+                    "ok-total-unready-count": "3"
+                },
+                "apiServerAccessProfile": {
+                    "authorizedIPRanges": "[parameters('clusterAuthorizedIPRanges')]",
+                    "enablePrivateCluster": false
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "EnsureClusterSpHasRbacToVNet",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+            ],
+            "resourceGroup": "[variables('vNetResourceGroup')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/providers/roleAssignments",
+                            "apiVersion": "2018-09-01-preview",
+                            "name": "[concat(split(variables('targetVnetResourceId'),'/')[8], '/Microsoft.Authorization/', guid(resourceGroup().id, variables('networkContributorRole'),'-aks-system-assigned-managed-identity-ilb'))]",
+                            "properties": {
+                                "roleDefinitionId": "[variables('networkContributorRole')]",
+                                "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-11-01', 'Full').identity.principalId]",
+                                "scope": "[variables('targetVnetResourceId')]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "EnsureClusterUserAssignedHasRbacToManageVMSS",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName'))]"
+            ],
+            "resourceGroup": "[variables('nodeResourceGroupName')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "name": "[guid(resourceGroup().id)]",
+                            "apiVersion": "2018-09-01-preview",
+                            "comments": "It is required to grant the AKS cluster with Virtual Machine Contributor role permissions over the cluster infrastructure resource group to work with Managed Identities and aad-pod-identity. Otherwise MIC component fails while attempting to update MSI on VMSS cluster nodes",
+                            "properties": {
+                                "roleDefinitionId": "[variables('virtualMachineContributorRole')]",
+                                "principalId": "[reference(resourceId('Microsoft.ContainerService/managedClusters', variables('clusterName')), '2020-03-01').identityProfile.kubeletidentity.objectId]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

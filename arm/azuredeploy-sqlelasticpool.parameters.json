@@ -1,0 +1,72 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "EnvironmentTag": {
+      "value": "Will be replaced"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "value": "Will be replaced",
+      "metadata": {
+        "description": "Name of the SQL Server"
+      }
+    },
+    "elasticPoolName": {
+      "type": "string",
+      "value": "Will be replaced",
+      "metadata": {
+        "description": "Name of the ElasticPool"
+      }
+    },
+    "elasticSkuName": {
+      "type": "string",
+      "value": "Will be replaced",
+      "metadata": {
+        "description": "SKU Name"
+      }
+    },
+    "skuTier": {
+      "type": "string",
+      "value": "Will be replaced",
+      "metadata": {
+        "description": "SKU Tier"
+      }
+    },
+    "skuFamily": {
+      "type": "string",
+      "value": "Will be replaced",
+      "metadata": {
+        "description": "SKU Family"
+      }
+    },
+    "capacity": {
+      "type": "string",
+      "value": "Will be replaced",
+      "metadata": {
+        "description": "capacity"
+      }
+    },
+    "databaseCapacityMin": {
+      "type": "string",
+      "value": "Will be replaced",
+      "metadata": {
+        "description": "Min DB Capacity"
+      }
+    },
+    "databaseCapacityMax": {
+      "type": "string",
+      "value": "Will be replaced",
+      "metadata": {
+        "description": "Max DB Capacity"
+      }
+    }
+  }
+}

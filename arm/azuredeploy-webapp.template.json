@@ -1,0 +1,92 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "location": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]",
+        "metadata": {
+          "description": "Location for all resources."
+        }
+      },
+      "webSiteName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name of the WebApp"
+        }
+      },
+      "hostingPlanName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name of the hosting plan"
+        }
+      }
+    },
+    "resources": [
+      {
+        "apiVersion": "2019-08-01",
+        "name": "[parameters('webSiteName')]",
+        "type": "Microsoft.Web/sites",
+        "location": "[parameters('location')]",
+        "tags": {
+          "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName')))]": "empty",
+          "displayName": "Website"
+        },
+        "identity": {
+          "type": "SystemAssigned"
+        },
+        "properties": {
+          "name": "[parameters('webSiteName')]",
+          "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]",
+          "httpsOnly": true,
+          "clientCertEnabled": false,
+          "siteConfig": {
+            "appSettings": [
+              {
+                "name": "WEBSITE_WEBDEPLOY_USE_SCM",
+                "value": false
+              },
+              {
+                "name": "SqlAuthentication_UseManagedIdentity",
+                "value": false
+              }
+            ],
+            "metadata": [
+              {
+                  "name": "CURRENT_STACK",
+                  "value": "dotnetcore"
+              }
+            ],
+            "phpVersion": "OFF",
+            "alwaysOn": true
+          }
+        }
+      },
+      {
+        "type": "Microsoft.Web/sites/config",
+        "apiVersion": "2018-11-01",
+        "name": "[concat(parameters('webSiteName'), '/web')]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Web/sites', parameters('webSiteName'))]"
+        ],
+        "properties": {
+            "numberOfWorkers": 1,
+            "phpVersion": "OFF",
+            "alwaysOn": true,
+            "ftpsState": "FtpsOnly",
+            "http20Enabled": true
+        }
+    }
+    ],
+    "outputs": {
+      "webAppIdentityObjectId": {
+        "value": "[reference(resourceId('Microsoft.Web/sites', parameters('webSiteName')), '2019-08-01', 'full').identity.principalId]",
+        "type": "string"
+      },
+      "webAppResourceId": {
+        "value": "[resourceId('Microsoft.Web/sites', parameters('webSiteName'))]",
+        "type": "string"
+      }
+    }
+  }

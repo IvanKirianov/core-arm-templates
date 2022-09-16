@@ -1,0 +1,39 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "sqlServerName": {
+        "value": "Will be replaced"	
+      },
+      "sqlDbName": {
+        "value": "Will be replaced"	
+      },
+      "sqlAdministratorLogin": {
+        "value": "Will be replaced"
+      },
+      "sqlAdministratorLoginPassword": {		
+        "value": "Will be replaced"		
+      },      
+      "zoneRedundant": {
+        "value": false
+      },
+      "maxSizeBytes": {
+        "value": "Will be replaced"	
+      },
+      "tier": {
+        "value": "Will be replaced"	
+      },
+      "skuName": {
+        "value": "Will be replaced"	
+      },
+      "readScaleOut": {
+        "value": "Will be replaced"	
+      },
+      "numberOfReplicas": {
+        "value": 0
+      },
+      "elasticPoolName": {
+        "value": "Will be replaced"
+      }
+    }
+  }

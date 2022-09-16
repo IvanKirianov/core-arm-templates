@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Target Subnet Name"
+      }
+    },
+    "vnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Target Vnet Name"
+      }
+    },
+    "vnetRG": {
+      "type": "string",
+      "metadata": {
+        "description": "Target Vnet Resource Group"
+      }
+    },    
+    "sqlServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the SQL Server"
+      }
+    }
+  },
+  "resources": [
+    {
+        "apiVersion": "2020-11-01-preview",
+        "type": "Microsoft.Sql/servers/virtualNetworkRules",
+        "name": "[concat(parameters('sqlServerName'),'/','allow-access-from-', parameters('subnetName'))]",
+        "properties": {
+          "virtualNetworkSubnetId": "[resourceId(parameters('vnetRG'),'Microsoft.Network/virtualNetworks/subnets/', parameters('vnetName'), parameters('subnetName'))]"
+        }
+    }    
+  ]
+}      

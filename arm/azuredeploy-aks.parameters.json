@@ -1,0 +1,84 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vnetName": {
+        "value": "Will be replaced"
+      },
+      "nodeResourceGroupName": {
+        "value": "Will be replaced"
+      },
+      "clusterName": {
+        "value": "Will be replaced"
+      },
+      "EnvironmentTag": {
+        "value": "Will be replaced"
+      },
+      "k8sRbacAadProfileAdminGroupObjectID": {
+        "value": "Will be replaced"
+      },
+      "k8sRbacAadProfileTenantId": {
+        "value": "Will be replaced"
+      },
+      "clusterAuthorizedIPRanges": {
+        "value": []
+      },
+      "location": {
+        "value": "Will be replaced"
+      },
+      "kubernetesVersion": {
+        "value": "Will be replaced"
+      },
+      "systemVMCount": {
+        "value": 1
+      },
+      "systemVmSize": {
+        "value": "Will be replaced"
+      },
+      "systemOsDiskSizeGB": {
+        "value": 30
+      },
+      "systemOsDiskType": {
+        "value": "Will be replaced"
+      },
+      "systemOsType": {
+        "value": "Will be replaced"
+      },
+      "systemMaxPods": {
+        "value": 30
+      },
+      "userVMCount": {
+        "value": 1
+      },
+      "userVmSize": {
+        "value": "Will be replaced"
+      },
+      "userOsDiskSizeGB": {
+        "value": 30
+      },
+      "userOsDiskType": {
+        "value": "Will be replaced"
+      },
+      "userOsType": {
+        "value": "Will be replaced"
+      },
+      "userMaxPods": {
+        "value": 30
+      },
+      "serviceCidr": {
+        "value": "Will be replaced"
+      },
+      "dnsServiceIP": {
+        "value": "Will be replaced"
+      },
+      "dockerBridgeCidr": {
+        "value": "Will be replaced"
+      },
+      "logWorkspaceName": {
+        "value": "Will be replaced"
+      },
+      "logWorkspaceRG": {
+        "value": "Will be replaced"
+      }            
+    }
+  }

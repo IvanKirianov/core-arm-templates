@@ -1,0 +1,87 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "EnvironmentTag": {
+          "type": "string"
+      },
+    "sqlServerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the SQL Server"
+      }
+    },
+    "elasticPoolName": {
+      "type": "string",
+      "metadata": {
+        "description": "ElasticPool Name"
+      }
+    },
+    "elasticSkuName": {
+      "type": "string",
+      "metadata": {
+        "description": "Sku Name"
+      }
+    },
+    "skuTier": {
+      "type": "string",
+      "metadata": {
+        "description": "Sku Tier"
+      }
+    },
+    "skuFamily": {
+      "type": "string",
+      "metadata": {
+        "description": "Sku Family"
+      }
+    },
+    "capacity": {
+      "type": "string",
+      "metadata": {
+        "description": "capacity"
+      }
+    },
+    "databaseCapacityMin": {
+      "type": "string",
+      "metadata": {
+        "description": "databaseCapacityMin"
+      }
+    },
+    "databaseCapacityMax": {
+      "type": "string",
+      "metadata": {
+        "description": "databaseCapacityMax"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Sql/servers/elasticPools",
+      "apiVersion": "2020-02-02-preview",
+      "location": "[parameters('location')]",
+      "name": "[concat(parameters('sqlServerName'), '/', parameters('elasticPoolName'))]",
+      "tags": {
+          "environment": "[parameters('EnvironmentTag')]"
+      },
+      "sku": {
+        "name": "[parameters('elasticSkuName')]",
+        "tier": "[parameters('skuTier')]",
+        "family": "[parameters('skuFamily')]",
+        "capacity": "[parameters('capacity')]"
+      },
+      "properties": {
+        "perDatabaseSettings": {
+          "minCapacity": "[parameters('databaseCapacityMin')]",
+          "maxCapacity": "[parameters('databaseCapacityMax')]"
+        }
+      }
+    }
+  ]
+}

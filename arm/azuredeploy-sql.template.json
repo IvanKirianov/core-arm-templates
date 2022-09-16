@@ -1,0 +1,85 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "sqlAdministratorLogin": {
+        "type": "string",
+        "metadata": {
+          "description": "The admin user of the SQL Server"
+        }
+      },
+      "sqlAdministratorLoginPassword": {
+        "type": "securestring",
+        "metadata": {
+          "description": "The password of the admin user of the SQL Server"
+        }
+      },
+      "location": {
+        "type": "string",
+        "defaultValue": "[resourceGroup().location]",
+        "metadata": {
+          "description": "Location for all resources."
+        }
+      },
+      "sqlServerName": {
+        "type": "string",
+        "metadata": {
+          "description": "Name of the SQL Server"
+        }
+      },
+      "aadGroupName": {
+        "type": "string",
+        "metadata": {
+          "description": "AAD SQL Admin group name"
+        }
+      },
+      "objectId": {
+        "type": "string",
+        "metadata": {
+          "description": "AAD group ObjectID"
+        }
+      },
+      "tenantId": {
+        "type": "string",
+        "metadata": {
+          "description": "AAD TenantID"
+        }
+      }
+    },
+    "resources": [
+      {
+        "name": "[parameters('sqlServerName')]",
+        "type": "Microsoft.Sql/servers",
+        "location": "[parameters('location')]",
+        "tags": {
+          "displayName": "SqlServer"
+        },
+        "apiVersion": "2020-02-02-preview",
+        "properties": {
+          "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+          "administratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]",
+          "version": "12.0"
+        }
+      },
+      {
+        "name": "[concat(parameters('sqlServerName'),'/ActiveDirectory')]",
+        "type": "Microsoft.Sql/servers/administrators",
+        "dependsOn": [
+          "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]"
+        ],
+        "apiVersion": "2019-06-01-preview",
+        "properties": {
+          "administratorType": "ActiveDirectory",
+          "login": "[parameters('aadGroupName')]",
+          "sid": "[parameters('objectId')]",
+          "tenantId": "[parameters('tenantId')]"
+        }
+      }
+    ],
+    "outputs": {
+      "sqlServerResourceId": {
+        "value": "[resourceId('Microsoft.Sql/servers', parameters('sqlServerName'))]",
+        "type": "string"
+      }
+    }
+  }

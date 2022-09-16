@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "searchName": {
+      "value": "Will be replaced"
+    },
+    "EnvironmentTag": {
+      "value": "Will be replaced"
+    },
+    "searchSku": {
+      "value": "Will be replaced"
+    },
+    "searchReplicaCount": {
+      "value": 1
+    },
+    "searchPartitionCount": {
+      "value": 1
+    },
+    "searchHostingMode": {
+      "value": "Will be replaced"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+name: 1.0.$(Rev:r)
+trigger:
+  branches:
+    include:
+    - master
+
+pool:
+  vmImage: 'windows-latest'
+
+stages:
+
+- stage: Build
+  displayName: Test & Package ARM Templates
+  jobs:
+  - job: Test
+    steps:
+    - task: RunARMTTKTests@1
+      displayName: "Run ARM Template Unit Tests"
+      inputs:
+        templatelocation: $(System.DefaultWorkingDirectory)\arm
+        resultLocation: '$(System.DefaultWorkingDirectory)\results'
+        skipTests: 'IDs Should Be Derived From ResourceIDs,Location Should Not Be Hardcoded,apiVersions Should Be Recent,Parameters Must Be Referenced,DeploymentTemplate Must Not Contain Hardcoded Uri,Outputs Must Not Contain Secrets,DependsOn Best Practices,ResourceIds should not contain'
+    - task: PublishTestResults@2
+      displayName: "Publish Test Results"
+      inputs:
+        testResultsFormat: 'NUnit'
+        testResultsFiles: '$(System.DefaultWorkingDirectory)\results\*-armttk.xml'
+      condition: always()
+  - job: Build
+    condition: succeeded()
+    dependsOn: Test
+    steps:
+    - publish: $(System.DefaultWorkingDirectory)\arm
+      artifact: ARM
+      displayName: 'Publish Artifacts'

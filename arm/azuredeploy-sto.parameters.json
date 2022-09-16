@@ -1,0 +1,21 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "storageAccountKind": {
+        "value": "Will be replaced"
+      },
+      "storageAccountSku": {
+        "value": "Will be replaced"
+      },
+      "storageAccountName": {
+        "value": "Will be replaced"
+      },
+      "EnvironmentTag": {
+        "value": "Will be replaced"
+      },
+      "storageAccountTier": {
+        "value": "Will be replaced"
+      }
+    }
+  }

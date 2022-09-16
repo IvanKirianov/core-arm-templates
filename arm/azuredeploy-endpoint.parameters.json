@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "privateEndpointName": {
+        "value": "Will be replaced"
+      },
+      "privateLinkServiceId": {
+        "value": "Will be replaced"
+      },
+      "vnetName": {
+        "value": "Will be replaced"
+      },
+      "subnetName": {
+        "value": "Will be replaced"
+      },
+      "groupId": {
+        "value": "Will be replaced"
+      },
+      "dnsZoneName": {
+        "value": "Will be replaced"
+      },
+      "dnsZoneRG": {
+        "value": "Will be replaced"
+      },            
+      "dnsZoneSubscription": {
+        "value": ""
+      }     
+    }
+  }

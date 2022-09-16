@@ -1,0 +1,87 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "logWorkspaceName": {
+            "type": "string",
+            "metadata": {
+            "description": "Log Analytics Workspace name"
+            }
+        },
+        "solutionType": {
+            "type": "string",
+            "defaultValue":[],
+            "allowedValues": [
+                "webAppSolution",
+                "vmSolution"
+            ],
+            "metadata": {
+            "description": "type of OMS solution"
+            }
+        }        
+    },
+    "variables": {
+		"omsSolutions": {
+			"webAppSolution": {
+				"product": "Azure Web Apps Analytics",
+				"solutionName": "[concat('AzureWebAppsAnalytics', '[', parameters('logWorkspaceName'), ']')]",
+				"publisher": "Microsoft",
+				"displayName": "Azure Web Apps Analytics",
+				"description": "Identify and troubleshoot issues across your Azure Web Apps",
+				"author": "Microsoft"
+			},
+			"vmSolution": {
+				"product": "OMSGallery/VMInsights",
+				"solutionName": "[concat('VMInsights','(',parameters('logWorkspaceName'),')')]",
+				"publisher": "Microsoft",
+				"displayName": "Azure VM Analytics",
+				"description": "Identify and troubleshoot issues across your Azure VM's",
+				"author": "Microsoft"
+			} 
+        }                   
+    },
+    "resources": [
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "apiVersion": "2020-08-01",
+            "name": "[parameters('logWorkspaceName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "sku": {
+                    "name": "pergb2018"
+                },
+                "retentionInDays": 120,
+                "features": {
+                    "searchVersion": 1,
+                    "legacy": 0,
+                    "enableLogAccessUsingOnlyResourcePermissions": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[variables('omsSolutions')[parameters('solutionType')].solutionName]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.OperationalInsights/workspaces/', parameters('logWorkspaceName'))]"
+            ],                    
+            "plan": {
+                "name": "[variables('omsSolutions')[parameters('solutionType')].solutionName]",
+                "product": "[variables('omsSolutions')[parameters('solutionType')].product]",
+                "publisher": "[variables('omsSolutions')[parameters('solutionType')].publisher]",
+                "promotionCode": ""
+            },
+            "properties": {
+                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces',parameters('logWorkspaceName'))]"
+            }
+        }        
+    ]
+}

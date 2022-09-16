@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "sqlAdministratorLogin": {
+        "value": "Will be replaced"
+      },
+      "sqlAdministratorLoginPassword": {		
+        "value": "Will be replaced"		
+      },
+      "sqlServerName": {
+        "value": "Will be replaced"	
+      },
+      "aadGroupName": {
+        "value": "Will be replaced"	
+      },
+      "tenantId": {
+        "value": "Will be replaced"	
+      },
+      "objectId": {
+        "value": "Will be replaced"	
+      }
+    }
+  }

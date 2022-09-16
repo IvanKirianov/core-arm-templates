@@ -1,0 +1,433 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Vm"
+      }
+    },
+    "domainUsername": {
+      "type": "string"
+    },
+    "domainPassword": {
+      "type": "string"
+    },
+    "domainJoinOptions": {
+      "type": "int",
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Set of bit flags that define the join options. Default value of 3 is a combination of NETSETUP_JOIN_DOMAIN (0x00000001) & NETSETUP_ACCT_CREATE (0x00000002) i.e. will join the domain and create the account on the domain. For more information see https://msdn.microsoft.com/en-us/library/aa392154(v=vs.85).aspx"
+      }
+    },        
+    "domainToJoin": {
+      "type": "string",
+      "metadata": {
+        "description": "The FQDN of the AD domain"
+      }
+    },      
+    "virtualMachineSize": {
+      "type": "String",
+      "defaultValue": "Standard_E4-2ds_v4",
+      "metadata": {
+        "description": "The virtual machine size."
+      }
+    },
+    "vnetName": {
+        "type": "string"
+    },    
+    "subnetName": {
+      "type": "String",
+      "metadata": {
+        "description": "Specify the name of the Subnet Name"
+      }
+    },
+    "imageOffer": {
+      "type": "String",
+      "defaultValue": "sql2019-ws2019",
+      "allowedValues": [
+        "sql2019-ws2019",
+        "sql2017-ws2019",
+        "SQL2017-WS2016",
+        "SQL2016SP1-WS2016",
+        "SQL2016SP2-WS2016",
+        "SQL2014SP3-WS2012R2",
+        "SQL2014SP2-WS2012R2"
+      ],
+      "metadata": {
+        "description": "Windows Server and SQL Offer"
+      }
+    },
+    "sqlSku": {
+      "type": "String",
+      "defaultValue": "Standard",
+      "allowedValues": [
+        "Standard",
+        "Enterprise",
+        "SQLDEV",
+        "Web",
+        "Express"
+      ],
+      "metadata": {
+        "description": "SQL Server Sku"
+      }
+    },
+    "virtualMachineAdminUsername": {
+      "type": "String",
+      "metadata": {
+        "description": "The admin user name of the VM"
+      }
+    },
+    "virtualMachineAdminPassword": {
+      "type": "SecureString",
+      "metadata": {
+        "description": "The admin password of the VM"
+      }
+    },
+    "storageWorkloadType": {
+      "type": "String",
+      "defaultValue": "General",
+      "allowedValues": [
+        "General",
+        "OLTP",
+        "DW"
+      ],
+      "metadata": {
+        "description": "SQL Server Workload Type"
+      }
+    },
+    "sqlDataDisksCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "maxValue": 8,
+      "metadata": {
+        "description": "Amount of data disks (127GB each) for SQL Data files"
+      }
+    },
+    "dataPath": {
+      "type": "String",
+      "defaultValue": "F:\\SQLData",
+      "metadata": {
+        "description": "Path for SQL Data files. Please choose drive letter from F to Z, and other drives from A to E are reserved for system"
+      }
+    },
+    "sqlLogDisksCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "maxValue": 8,
+      "metadata": {
+        "description": "Amount of data disks (127GB each) for SQL Log files"
+      }
+    },
+    "logPath": {
+      "type": "String",
+      "defaultValue": "G:\\SQLLog",
+      "metadata": {
+        "description": "Path for SQL Log files. Please choose drive letter from F to Z and different than the one used for SQL data. Drive letter from A to E are reserved for system"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "vmNameOffsetNumber": {
+      "type": "int",
+      "defaultValue": 1
+    },
+    "virtualMachineCount": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "virtualMachineCount"
+      }
+    },
+    "zone": {
+      "type": "int"
+    },
+    "logResourceGroup": {
+      "type": "string"
+    },
+    "logWorkspaceName": {
+      "type": "string"
+    }               
+  },
+  "variables": {
+    "networkInterfaceName": "[concat('nic-', parameters('vmResourceId'))]",
+    "virtualMachineName": "[concat('sql-', parameters('vmResourceId'))]",
+    "diskConfigurationType": "NEW",
+    "dataDisksLuns": "[array(range(0 ,parameters('sqlDataDisksCount')))]",
+    "logDisksLuns": "[array(range(parameters('sqlDataDisksCount'), parameters('sqlLogDisksCount')))]",
+    "dataDisks": {
+      "createOption": "empty",
+      "caching": "ReadOnly",
+      "writeAcceleratorEnabled": false,
+      "storageAccountType": "Premium_LRS",
+      "diskSizeGB": 127
+    },
+    "tempDbPath": "D:\\SQLTemp"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2020-06-01",
+      "name": "[concat(variables('networkInterfaceName'), copyIndex(parameters('vmNameOffsetNumber')))]",
+      "location": "[parameters('location')]",
+      "copy": {
+        "name": "copy",
+        "count": "[parameters('virtualMachineCount')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                  "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName') , parameters('SubnetName'))]"
+              },
+              "privateIPAllocationMethod": "Dynamic"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2020-06-01",
+      "name": "[replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-','')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+          "[concat('Microsoft.Network/networkInterfaces/', concat(variables('networkInterfaceName'),copyIndex(parameters('vmNameOffsetNumber'))))]"
+      ],
+      "copy": {
+        "name": "vmextensioncopy",
+        "count": "[parameters('virtualMachineCount')]"
+      },  
+      "zones": [
+          "[parameters('zone')]"
+      ],          
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "createOption": "fromImage",
+            "managedDisk": {
+              "storageAccountType": "Premium_LRS"
+            }
+          },
+          "imageReference": {
+            "publisher": "MicrosoftSQLServer",
+            "offer": "[parameters('imageOffer')]",
+            "sku": "[parameters('sqlSku')]",
+            "version": "latest"
+          },
+          "copy": [
+            {
+              "name": "dataDisks",
+              "count": "[add(parameters('sqlDataDisksCount'), parameters('sqlLogDisksCount'))]",
+              "input": {
+                "lun": "[copyIndex('dataDisks')]",
+                "createOption": "[variables('dataDisks').createOption]",
+                "caching": "[if(greaterOrEquals(copyIndex('dataDisks'), parameters('sqlDataDisksCount')) ,'None', variables('dataDisks').caching )]",
+                "writeAcceleratorEnabled": "[variables('dataDisks').writeAcceleratorEnabled]",
+                "diskSizeGB": "[variables('dataDisks').diskSizeGB]",
+                "managedDisk": {
+                  "storageAccountType": "[variables('dataDisks').storageAccountType]"
+                }
+              }
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('networkInterfaceName'),copyIndex(parameters('vmNameOffsetNumber'))))]"
+            }
+          ]
+        },
+        "osProfile": {
+          "computerName": "[replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-','')]",
+          "adminUsername": "[parameters('virtualMachineAdminUsername')]",
+          "adminPassword": "[parameters('virtualMachineAdminPassword')]",
+          "windowsConfiguration": {
+            "enableAutomaticUpdates": true,
+            "provisionVmAgent": true
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.SqlVirtualMachine/SqlVirtualMachines",
+      "apiVersion": "2017-03-01-preview",
+      "name": "[replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-','')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''))]"
+      ],
+      "copy": {
+        "name": "vmextensioncopy",
+        "count": "[parameters('virtualMachineCount')]"
+      },
+      "properties": {
+        "virtualMachineResourceId": "[resourceId('Microsoft.Compute/virtualMachines/', replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''))]",
+        "sqlManagement": "Full",
+        "SqlServerLicenseType": "PAYG",
+        "serverConfigurationsManagementSettings": {
+          "sqlConnectivityUpdateSettings": {
+            "connectivityType": "PRIVATE",
+            "port": "1433"
+          }  
+        },        
+        "StorageConfigurationSettings": {
+          "DiskConfigurationType": "[variables('diskConfigurationType')]",
+          "StorageWorkloadType": "[parameters('storageWorkloadType')]",
+          "SQLDataSettings": {
+            "LUNs": "[variables('dataDisksLUNs')]",
+            "DefaultFilePath": "[parameters('dataPath')]"
+          },
+          "SQLLogSettings": {
+            "Luns": "[variables('logDisksLUNs')]",
+            "DefaultFilePath": "[parameters('logPath')]"
+          },
+          "SQLTempDbSettings": {
+            "DefaultFilePath": "[variables('tempDbPath')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "[concat(replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''),'/AADLoginForWindows')]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2018-10-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''))]"
+      ],
+      "copy": {
+        "name": "vmextensioncopy",
+        "count": "[parameters('virtualMachineCount')]"
+      },
+      "properties": {
+          "publisher": "Microsoft.Azure.ActiveDirectory",
+          "type": "AADLoginForWindows",
+          "typeHandlerVersion": "1.0",
+          "autoUpgradeMinorVersion": true
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''),'/joindomain')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''))]"
+      ],
+      "copy": {
+        "name": "vmextensioncopy",
+        "count": "[parameters('virtualMachineCount')]"
+      },
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "Name": "[parameters('domainToJoin')]",
+          "User": "[concat(parameters('domainToJoin'), '\\', parameters('domainUsername'))]",
+          "Restart": "true",
+          "Options": "[parameters('domainJoinOptions')]"
+        },
+        "protectedSettings": {
+          "Password": "[parameters('domainPassword')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''),'/antimalware')]",
+      "apiVersion": "2019-07-01",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''))]"
+      ],
+      "copy": {
+          "name": "vmextensioncopy",
+          "count": "[parameters('virtualMachineCount')]"
+      },
+      "properties": {
+        "publisher": "Microsoft.Azure.Security",
+        "type": "IaaSAntimalware",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "AntimalwareEnabled": "true",
+          "Exclusions": {
+            "Extensions": ".log;.ldf;.mdf;.ndf;.bak;.trn;",
+            "Paths": "C:\\IISlogs;C:\\DatabaseLogs;C:\\Program Files\\Microsoft SQL Server\\MSSQL;S:\\",
+            "Processes": "mssence.svc;SQLServr.exe;ReportingServicesService.exe;MSMDSrv.exe"
+          },
+          "RealtimeProtectionEnabled": "true",
+          "ScheduledScanSettings": {
+            "isEnabled": "true",
+            "scanType": "Quick",
+            "day": "7",
+            "time": "120"
+          }
+        }
+      }
+    },
+      {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2018-10-01",
+        "name": "[concat(replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''),'/DependencyAgentWindows')]",        
+        "location": "[parameters('location')]",
+        "dependsOn": [
+          "[concat('Microsoft.Compute/virtualMachines/', replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''))]"
+        ],
+        "copy": {
+          "name": "vmextensioncopy",
+          "count": "[parameters('virtualMachineCount')]"
+        },
+        "properties": {
+            "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+            "type": "DependencyAgentWindows",
+            "typeHandlerVersion": "9.5",
+            "autoUpgradeMinorVersion": true
+        }
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "apiVersion": "2018-10-01",
+        "name": "[concat(replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''),'/MMAExtension')]",
+        "location": "[parameters('location')]",
+        "dependsOn": [
+          "[concat('Microsoft.Compute/virtualMachines/', replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''))]"
+        ],
+        "copy": {
+          "name": "vmextensioncopy",
+          "count": "[parameters('virtualMachineCount')]"
+        },
+        "properties": {
+          "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+          "type": "MicrosoftMonitoringAgent",
+          "typeHandlerVersion": "1.0",
+          "autoUpgradeMinorVersion": "true",
+          "settings": {
+            "workspaceId": "[reference(resourceId(parameters('logResourceGroup'),'Microsoft.OperationalInsights/workspaces/', parameters('logWorkspaceName')), '2015-03-20').customerId]",
+            "azureResourceId":  "[resourceId('Microsoft.Compute/virtualMachines/', replace(concat(variables('virtualMachineName'), copyIndex(parameters('vmNameOffsetNumber'))),'-',''))]",
+            "stopOnMultipleConnections": "true"
+          },
+          "protectedSettings": {
+            "workspaceKey": "[listKeys(resourceId(parameters('logResourceGroup'),'Microsoft.OperationalInsights/workspaces/', parameters('logWorkspaceName')), '2015-03-20').primarySharedKey]"
+          }
+        }
+      }         
+  ]
+}

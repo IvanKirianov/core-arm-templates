@@ -1,0 +1,113 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "kvName": {
+            "type": "string"
+        },
+        "tenantId": {
+            "type": "string"
+        },
+        "objectId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
+            }
+        },
+        "accessLevel": {
+            "type": "string",
+            "allowedValues": [
+                "List",
+                "Read",
+                "Full"
+            ]            
+        }              
+    },
+    "variables": {
+        "accessLevel": {
+            "keys": {
+                "List": [
+                    "List"  
+                ],
+                "Read": [
+                    "Get",
+                    "List"                
+                ],
+                "Full": [
+                    "Get",
+                    "List",
+                    "Update",
+                    "Create",
+                    "Import",
+                    "Delete",
+                    "Recover",
+                    "Backup",
+                    "Restore"
+                ]
+            },
+            "secrets": {
+                "List": [
+                    "List"  
+                ],
+                "Read": [
+                    "Get",
+                    "List"                
+                ],
+                "Full": [
+                    "Get",
+                    "List",
+                    "Set",
+                    "Delete",
+                    "Recover",
+                    "Backup",
+                    "Restore",
+                    "Purge"
+                ]
+            },                        
+            "certificates": {
+                "List": [
+                    "List"  
+                ],
+                "Read": [
+                    "Get",
+                    "List"                
+                ],
+                "Full": [
+                    "Get",
+                    "List",
+                    "Delete",
+                    "Create",
+                    "Import",
+                    "Update",
+                    "Recover",
+                    "Purge",
+                    "Backup",
+                    "Restore"
+                ]
+            }
+        },  
+        "keysPermissions": "[variables('accessLevel').keys[parameters('accessLevel')]]",  
+        "secretsPermissions": "[variables('accessLevel').secrets[parameters('accessLevel')]]", 
+        "certificatesPermissions": "[variables('accessLevel').certificates[parameters('accessLevel')]]"        
+    },
+    "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults/accessPolicies",
+      "name": "[concat(parameters('kvName'), '/add')]",
+      "apiVersion": "2019-09-01",
+      "properties": {
+        "accessPolicies": [
+          {
+            "tenantId": "[parameters('tenantId')]",
+            "objectId": "[parameters('objectId')]",
+            "permissions": {
+              "keys": "[variables('keysPermissions')]",
+              "secrets": "[variables('secretsPermissions')]",
+              "certificates": "[variables('certificatesPermissions')]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

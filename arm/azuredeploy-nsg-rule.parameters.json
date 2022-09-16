@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters":{
+    "nsgName": {
+      "value": "Will be replaced"
+    },
+    "networkSecurityGroupsSettings": {
+    "value": {
+        "securityRules": [
+          {
+            "name": "HTTP",
+            "description": "allow HTTP connections",
+            "direction": "Inbound",
+            "priority": 300,
+            "sourceAddressPrefix": "*",
+            "destinationAddressPrefix": "*",
+            "sourcePortRange": "*",
+            "destinationPortRange": "80",
+            "access": "Allow",
+            "protocol": "Tcp"
+
+          },
+          {
+            "name": "HTTPS",
+            "description": "allow HTTPS connections",
+            "direction": "Inbound",
+            "priority": 320,
+            "sourceAddressPrefix": "*",
+            "destinationAddressPrefix": "*",
+            "sourcePortRange": "*",
+            "destinationPortRange": "443",
+            "access": "Allow",
+            "protocol": "Tcp"
+          }
+        ]
+      }
+    }
+  }
+}

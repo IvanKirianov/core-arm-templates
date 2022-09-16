@@ -1,0 +1,57 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vmResourceId": {
+        "value": "Will be replaced"	
+      },
+      "virtualMachineSize": {
+        "value": "Will be replaced"
+      },
+      "imageOffer": {
+        "value": "Will be replaced"
+      },
+      "sqlSku": {
+        "value": "Will be replaced"
+      },
+      "virtualMachineAdminUsername": {
+        "value": "Will be replaced"
+      },
+      "virtualMachineAdminPassword": {
+        "value": "Will be replaced"
+      },
+      "domainUsername": {
+        "value": "Will be replaced"
+      },
+      "domainPassword": {
+        "value": "Will be replaced"
+      },
+      "vnetName": {
+        "value": "Will be replaced"
+      },      
+      "subnetName": {
+        "value": "Will be replaced"
+      },
+      "domainJoinOptions": {
+        "value": 3
+      },
+      "domainToJoin": {
+        "value": "Will be replaced"
+      },
+      "virtualMachineCount": {
+          "value": 1
+      },
+      "vmNameOffsetNumber": {
+          "value": 1
+      },
+      "zone": {
+        "value": 3
+      },
+      "logResourceGroup": {
+        "value": "Will be replaced"
+      },
+      "logWorkspaceName": {
+        "value": "Will be replaced"
+      }              
+    }  
+  }
